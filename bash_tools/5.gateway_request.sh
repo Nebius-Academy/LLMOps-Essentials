@@ -3,5 +3,5 @@ curl -X POST "http://localhost:8001/chat/" \
 -H "Content-Type: application/json" \
 -d '{
   "message": "What is poetry in Python?",
-  "model": "gpt-4o-mini"
+  "model": "llama3-8b"
 }'
