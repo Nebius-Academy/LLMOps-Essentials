@@ -235,4 +235,6 @@ This script installs Poetry globally on your system. Once installed, you can use
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the GNU GPL v3 License. See the [LICENSE](LICENSE) file for more information.
+
+© Nebius BV, 2024
