@@ -14,6 +14,23 @@ Follow the installation steps described in the main branch, nothing extra is req
 Retrieval and reranking models are specified in `rag_service/docker-compose.yaml` - don't forget to adjust the ENV at the bottom.
 RAG-related parameters along with a prompt template are in `rag_sevice/src/config.py`
 
+## Parametrization
+
+The parameters set during the build:
+
+Retrieval/reranker models, in `rag_service/docker-compose.yaml`:
+- `command:` pass a model as `--model-id`
+- `environment:` `EMB_MODEL`
+
+If you need to switch to a gpu set TEI containers accordingly:
+- `image:` https://github.com/huggingface/text-embeddings-inference?tab=readme-ov-file#docker-images
+
+Retrieval parameters are in `rag_service/src/config.py`
+
+Rag-gradio model is in `rag_gradio_service/src/config.py`, `OPENAI_MODEL`
+
+The default parameters of a RAG request are in `rag_service/src/main.py`, `RAGRequest`
+
 ## Usage
 
 RAG endpoints use the same authorization scheme as the main chat service. 
