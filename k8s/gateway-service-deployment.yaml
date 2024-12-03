@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: gateway-service
-        image: cr.eu-north1.nebius.cloud/e00cb48crsdh2dy7n3/gateway-service:effa9558c702c6b9022d35cb0616aef7bd50099e
+        image: cr.eu-north1.nebius.cloud/e00cb48crsdh2dy7n3/gateway-service:edaf4fd8e5be80316fcc30caf332362277707577
         ports:
         - containerPort: 8001
         env:
