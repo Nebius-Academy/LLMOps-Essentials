@@ -60,7 +60,6 @@ llama-8B:
       CLIENT_NAME: "nebius"
       MODEL_NAME: "meta-llama/Meta-Llama-3.1-8B-Instruct"
 
-
   gateway_service:
     build: ./gateway_service
     container_name: gateway_service
