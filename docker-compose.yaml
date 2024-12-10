@@ -52,6 +52,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgres_init:/docker-entrypoint-initdb.d
 
   rag_gradio_service:
     build: ./rag_gradio_service
