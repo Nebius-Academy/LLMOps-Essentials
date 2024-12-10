@@ -22,18 +22,21 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-    - name: Configure docker to use gcloud as a credential helper
+    - name: Authenticate to Nebius
       run: |
-        gcloud auth configure-docker
+        rm -rf ~/.nebius
+        curl -sSL https://storage.ai.nebius.cloud/nebius/install.sh | bash
+        echo "${{ secrets.NEBIUS_CONFIG }}" > ~/.nebius/config.yaml
+    - name: Add Nebius bin to PATH
+      run: echo "$HOME/.nebius/bin" >> $GITHUB_PATH
+
+    - name: Configure docker to use Nebius as a credential helper
+      run: |
+        nebius registry configure-helper
 
     - name: Build and push inference-service image
       run: |
-        export IMAGE_TAG=gcr.io/${{ secrets.GCP_PROJECT_ID }}/inference-service:${{ github.sha }}
+        export IMAGE_TAG=cr.eu-north1.nebius.cloud/${{ secrets.NEBIUS_REGISTRY_ID }}/inference-service:${{ github.sha }}
         docker build -t $IMAGE_TAG ./inference_service
         docker push $IMAGE_TAG
         sed -i "s|image: .*inference-service:.*|image: ${IMAGE_TAG}|" k8s/gpt-4-mini-deployment.yaml
@@ -41,7 +44,7 @@ jobs:
 
     - name: Build and push gateway-service image
       run: |
-        export IMAGE_TAG=gcr.io/${{ secrets.GCP_PROJECT_ID }}/gateway-service:${{ github.sha }}
+        export IMAGE_TAG=cr.eu-north1.nebius.cloud/${{ secrets.NEBIUS_REGISTRY_ID }}/gateway-service:${{ github.sha }}
         docker build -t $IMAGE_TAG ./gateway_service
         docker push $IMAGE_TAG
         sed -i "s|image: .*gateway-service:.*|image: ${IMAGE_TAG}|" k8s/gateway-service-deployment.yaml
@@ -61,16 +64,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y kubectl
 
-    - name: Install gke-gcloud-auth-plugin
+    - name: Configure cluster
       run: |
-        echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-        curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-        sudo apt-get update
-        sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
-
-    - name: Configure kubectl
-      run: |
-        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GCP_PROJECT_ID }}
+        nebius mk8s cluster get-credentials --id ${{ secrets.NEBIUS_CLUSTER_ID }} --external
 
     - name: Apply Kubernetes manifests
       run: |
