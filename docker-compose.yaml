@@ -30,7 +30,7 @@ services:
       CLIENT_NAME: "openai"
       MODEL_NAME: "gpt-4o"
 
-  llama-405B:
+  llama-405b:
     build: ./inference_service
     container_name: inference_service_llama_3_1_405b
     ports:
@@ -40,7 +40,7 @@ services:
       CLIENT_NAME: "nebius"
       MODEL_NAME: "meta-llama/Meta-Llama-3.1-405B-Instruct"
 
-  llama-70B:
+  llama-70b:
     build: ./inference_service
     container_name: inference_service_llama_3_1_70b
     ports:
@@ -50,7 +50,7 @@ services:
       CLIENT_NAME: "nebius"
       MODEL_NAME: "meta-llama/Meta-Llama-3.1-70B-Instruct"
 
-  llama-8B:
+  llama-8b:
     build: ./inference_service
     container_name: inference_service_llama_3_1_8b
     ports:
