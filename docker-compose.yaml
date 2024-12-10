@@ -40,7 +40,7 @@ services:
       CLIENT_NAME: "nebius"
       MODEL_NAME: "meta-llama/Meta-Llama-3.1-405B-Instruct"
 
-llama-70B:
+  llama-70B:
     build: ./inference_service
     container_name: inference_service_llama_3_1_70b
     ports:
