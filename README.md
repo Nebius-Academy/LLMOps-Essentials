@@ -86,3 +86,6 @@ sense given the conversation history, irrelevant context will likely be retrieve
 
 Note that calls to RAG endpoints count toward the rate limit, as they use the chat endpoint under the hood.
 
+This project is licensed under the GNU GPL v3 License. See the [LICENSE](LICENSE) file for more information.
+
+© Nebius BV, 2024
