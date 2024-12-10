@@ -13,10 +13,19 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Set OpenAI API client and model name
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
+# Set API client
+client_name = os.getenv("CLIENT_NAME")
+if client_name == "nebius":
+    client = OpenAI(
+        base_url="https://api.studio.nebius.ai/v1/",
+        api_key=os.environ.get("NEBIUS_API_KEY"),
+    )
+else:
+    client = OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+    )
+
+# Set model name
 model_name = os.getenv("MODEL_NAME")
 
 
