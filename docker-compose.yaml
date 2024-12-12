@@ -92,6 +92,26 @@ services:
     ports:
       - "7860:7860"
 
+  jupyter:
+    image: jupyter/datascience-notebook
+    container_name: jupyter_notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - .:/home/jovyan/project
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - GRANT_SUDO=yes
+    user: root
+    command: start-notebook.sh --NotebookApp.token='' --NotebookApp.password='' --NotebookApp.ip='0.0.0.0'
+    networks:
+      - default
+
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  default:
+    driver: bridge
