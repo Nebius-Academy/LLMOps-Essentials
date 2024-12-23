@@ -1,12 +1,17 @@
+import functools
 import logging
 import os
-import functools
+import torch
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from transformers import pipeline, AutoTokenizer
-import torch
+
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 MODEL_NAME = os.environ.get("MODEL_NAME")
@@ -20,10 +25,16 @@ async def lifespan(app: FastAPI):
     # Load the model from HuggingFace transformers library
     global llm_pipeline
 
+    logger.info("Starting inference server...")
+    logger.info(f"CUDA is avaliable: {torch.cuda.is_available()}")
+
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_NAME,
-        use_fast=False
+        use_fast=False,
     )
+
+    logger.info("Loading model weights...")
+
     llm_pipeline = pipeline(
         "text-generation",
         model=MODEL_NAME,
@@ -46,9 +57,13 @@ async def lifespan(app: FastAPI):
     llm_pipeline = functools.partial(
         llm_pipeline,
         eos_token_id=llm_pipeline.tokenizer.eos_token_id,
+        pad_token_id=llm_pipeline.tokenizer.eos_token_id,
     )
+    logger.info("Inference server is ready for requests...")
 
     yield
+
+    logger.info("Cleaning GPU memory...")
 
     # Clean up GPU memory
     del tokenizer, llm_pipeline
@@ -57,10 +72,6 @@ async def lifespan(app: FastAPI):
 
 # Initialize the FastAPI app with lifespan
 app = FastAPI(lifespan=lifespan)
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class Message(BaseModel):

@@ -7,23 +7,24 @@ services:
     ports:
       - "6379:6379"
 
-  gpt-4-mini:
+  llama3-8b:
     build: ./inference_service
-    container_name: inference_service_gpt4mini
+    container_name: inference_service_llama3_8b
     ports:
       - "8002:8000"
     environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      MODEL_NAME: "gpt-4o-mini"
-
-  gpt-4o:
-    build: ./inference_service
-    container_name: inference_service_gpt4o
-    ports:
-      - "8003:8000"
-    environment:
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      MODEL_NAME: "gpt-4o"
+      MODEL_NAME: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+      CACHE_DIR: /usr/models
+      HF_TOKEN: ${HF_TOKEN}
+    volumes:
+      - /usr/models:${CACHE_DIR}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   gateway_service:
     build: ./gateway_service
@@ -32,8 +33,7 @@ services:
       - "8001:8001"
     depends_on:
       - redis
-      - gpt-4-mini
-      - gpt-4o
+      - llama3-8b
       - postgres
     environment:
       ADMIN_KEY: ${ADMIN_KEY}
