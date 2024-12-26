@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: gpt-4-mini
-        image: cr.eu-north1.nebius.cloud/e00cb48crsdh2dy7n3/inference-service:edaf4fd8e5be80316fcc30caf332362277707577
+        image: cr.eu-north1.nebius.cloud/e00cb48crsdh2dy7n3/inference-service:fc24bb8e9c08094e9fe91086bd50ed668839c687
         ports:
         - containerPort: 8000
         env:
