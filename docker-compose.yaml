@@ -25,6 +25,36 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       MODEL_NAME: "gpt-4o"
 
+  llama-405b:
+    build: ./inference_service
+    container_name: inference_service_llama_3_1_405b
+    ports:
+      - "8004:8000"
+    environment:
+      NEBIUS_API_KEY: ${NEBIUS_API_KEY}
+      CLIENT_NAME: "nebius"
+      MODEL_NAME: "meta-llama/Meta-Llama-3.1-405B-Instruct"
+
+  llama-70b:
+    build: ./inference_service
+    container_name: inference_service_llama_3_1_70b
+    ports:
+      - "8005:8000"
+    environment:
+      NEBIUS_API_KEY: ${NEBIUS_API_KEY}
+      CLIENT_NAME: "nebius"
+      MODEL_NAME: "meta-llama/Meta-Llama-3.1-70B-Instruct"
+
+  llama-8b:
+    build: ./inference_service
+    container_name: inference_service_llama_3_1_8b
+    ports:
+      - "8006:8000"
+    environment:
+      NEBIUS_API_KEY: ${NEBIUS_API_KEY}
+      CLIENT_NAME: "nebius"
+      MODEL_NAME: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+
   gateway_service:
     build: ./gateway_service
     container_name: gateway_service
