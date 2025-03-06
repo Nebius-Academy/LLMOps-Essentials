@@ -4,6 +4,9 @@ services:
   redis:
     image: redis:alpine
     container_name: redis
+    volumes:
+      - redis_data:/data
+    command: [ "redis-server", "--save", "60 1", "--appendonly", "yes" ]
     ports:
       - "6379:6379"
 
@@ -55,6 +58,21 @@ services:
       CLIENT_NAME: "nebius"
       MODEL_NAME: "meta-llama/Meta-Llama-3.1-8B-Instruct"
 
+#  ollama:
+#    image: ollama/ollama
+#    container_name: ollama_service
+#    ports:
+#      - "11434:11434"
+#    pull_policy: always
+#    tty: true
+#    restart: always
+#    volumes:
+#      - ollama_data:/root/.ollama  # Persistent storage for models
+#    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull llama3 && wait"]
+#    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull mistral && wait"]
+#    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull llama3 && ollama pull mistral && ollama pull gemma && ollama pull phi3 && wait"]
+
+
   gateway_service:
     build: ./gateway_service
     container_name: gateway_service
@@ -65,8 +83,11 @@ services:
       - gpt-4-mini
       - gpt-4o
       - postgres
+#      - ollama
     environment:
       ADMIN_KEY: ${ADMIN_KEY}
+      MODEL_NAME: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+#      OLLAMA_API_URL: "http://ollama:11434"
 
   postgres:
     image: postgres:13
@@ -83,3 +104,7 @@ services:
 volumes:
   postgres_data:
     driver: local
+  redis_data:
+    driver: local
+#  o`llama_data:
+#    driver: local
