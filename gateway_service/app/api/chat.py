@@ -150,7 +150,7 @@ async def chat_npc_proxy(chat_request: ChatNPCRequest, api_key: str=Depends(veri
     else:
         chat_id = generate_chat_id()
         chat_history = []
-
+    logger.info(f"chat_id: {chat_id }")
     # Limit the number of messages provided to LLM
     short_history = chat_history[-CHAT_MEMORY_LENGTH:] if len(chat_history) > CHAT_MEMORY_LENGTH else chat_history
 
@@ -275,17 +275,35 @@ async def end_chat_session(chat_id: str, api_key: str = Depends(verify_token)):
     logger.info(f"Long memory: {long_memory}")
 
     if long_memory != "":
-        summary_prompt = f""" Summarize the following conversation between a user and an NPC while keeping key details.
-        Take into account previous dialogue: {long_memory}. 
-        Current message history: {history_prompt_part}.
-        Start answering with no additional description of your summary.
-    """
+        summary_prompt = f"""Reflect on the previous conversation and your previous memories about yourself.
+
+        CURRENT SELF MEMORIES: {long_memory}.
+
+        PREVIOUS CONVERSATION: {history_prompt_part}
+
+        ---
+        What have you learnt about yourself, the user, your goals, and the world around? Answer in no more than 10 sentences. 
+        Your answer won't be shown to anyone.
+        """
+        # summary_prompt = f""" Summarize the following conversation between a user and an NPC while keeping key details.
+        # Take into account previous dialogue: {long_memory}.
+        # Current message history: {history_prompt_part}.
+        # Start answering with no additional description of your summary.
+    # """
     else:
         # Generate a summary using LLM
-        summary_prompt = f"""
-        Summarize the following conversation between a user and an NPC while keeping key details:
-        {history_prompt_part}.
-        Start answering with no additional description of your summary.
+        # summary_prompt = f"""
+        # Summarize the following conversation between a user and an NPC while keeping key details:
+        # {history_prompt_part}.
+        # Start answering with no additional description of your summary.
+        # """
+        summary_prompt = f"""Reflect on the previous conversation and your previous memories about yourself.
+
+        PREVIOUS CONVERSATION: {history_prompt_part}
+
+        ---
+        What have you learnt about yourself, the user, your goals, and the world around? Answer in no more than 10 sentences. 
+        Your answer won't be shown to anyone.
         """
 
     model_name = os.getenv("MODEL_NAME")
