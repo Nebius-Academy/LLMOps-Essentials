@@ -22,38 +22,41 @@ This project implements a gateway service integrated with an inference service u
 
 ```
 .
+├── LICENSE
+├── README.md
+├── SECURITY.md
+├── docker-compose.yaml
 ├── gateway_service
-│   ├── Dockerfile
-│   └── app
-│       ├── __init__.py
-│       ├── main.py
-│       ├── middleware
-│       │   ├── auth_middleware.py
-│       │   ├── logging_middleware.py
-│       │   └── rate_limit_middleware.py
-│       ├── core
-│       │   ├── config.py
-│       │   ├── metrics.py
-│       │   └── security.py
-│       ├── schemas
-│       │   ├── signup.py
-│       │   └── chat.py
-│       ├── db
-│       │   ├── database.py
-│       │   └── models.py
-│       └── api
-│           ├── auth.py
-│           ├── metrics.py
-│           └── chat.py
+│   ├── Dockerfile
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── api
+│   │   ├── core
+│   │   ├── db
+│   │   ├── main.py
+│   │   ├── middleware
+│   │   └── schemas
+│   ├── poetry.lock
+│   └── pyproject.toml
 ├── inference_service
-│   ├── Dockerfile
-│   └── src
-│       └── main.py
+│   ├── Dockerfile
+│   ├── poetry.lock
+│   ├── pyproject.toml
+│   └── src
+│       └── main.py
 ├── k8s
-│   ├── postgres-deployment.yaml
-│   ├── gateway-service-deployment.yaml
-│   ├── gpt-4-mini-deployment.yaml
-│   └── redis-deployment.yaml
+│   ├── gateway-service-deployment.yaml
+│   ├── gpt-4-mini-deployment.yaml
+│   ├── gpt-4o-deployment.yaml
+│   ├── postgres-deployment.yaml
+│   └── redis-deployment.yaml
+├── postgres_init
+│   └── init.sql
+└── rag_service
+    └── data
+        ├── models--BAAI--bge-small-en-v1.5
+        ├── models--mixedbread-ai--mxbai-rerank-base-v1
+        └── tmp
 ```
 
 ## Installation for Development
@@ -109,6 +112,14 @@ CREATE TABLE users (
     hashed_password VARCHAR,
     api_key VARCHAR UNIQUE
 );
+
+CREATE TABLE IF NOT EXISTS npcs (
+    id VARCHAR UNIQUE PRIMARY KEY,
+    char_descr TEXT NOT NULL,
+    world_descr TEXT NOT NULL,
+    has_scratchpad BOOLEAN NOT NULL
+);
+
 ```
 
 ## Usage
@@ -137,6 +148,93 @@ The user's entry point to the system is the **Gateway Service**. This service ha
    cd inference_service
    poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
    ```
+
+## Main commands to work with NPC factory
+
+### Create NPC
+    
+You can create NPC with the following data structure:
+```json
+{
+  "char_descr": "You're a knight at the court of Edward I.",
+  "world_descr": "You're in London. And it's XIII century.",
+  "has_scratchpad": false
+}
+```
+where: 
+char_descr - description of the character,
+world_descr - description of the world,
+has_scratchpad - if the character is having a 
+scratchpad or not (to think on the users question before answering) 
+
+To run a request with the data you can use the following command:
+```bash
+curl -X 'POST' \
+  'http://0.0.0.0:8001/create_npc/' \
+  -H 'accept: application/json' \
+  -H 'Authorization: aYpVtQxRmGzLsBnCfDiKjUxWqHvNwYcFbXlPrVdTw' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "char_descr": "You'\''re a knight at the court of Edward I.",
+  "world_descr": "You'\''re in London. And it'\''s XIII century.",
+  "has_scratchpad": true
+}'
+```
+
+The result of the request will be JSON with chat_id which will be used for 
+all the following chat requests with this character within this session:
+```json
+{
+  "status": "NPC successfully saved",
+  "npc_id": "0d2c9254-8bd8-42a0-8fe0-ae76e408abe7"
+}
+```
+### To chat with NPC
+
+Request params:
+```json
+{
+  "chat_id": "ZjlhOWY2ZTdjY2Y0NDVmMW",
+  "npc_id": "5dcc0f0a-2476-4110-8a78-c3137d2314dc",
+  "message": "Oh wow! Your math knowledge is much better than mine. I was not able to solve this one. Can you multiply? What is 3 times 8?",
+  "model": "meta-llama/Meta-Llama-3.1-405B-Instruct"
+}
+```
+Request:
+```bash
+curl -X 'POST' \
+  'http://0.0.0.0:8001/chat_npc/' \
+  -H 'accept: application/json' \
+  -H 'Authorization: token8438316761499410150' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "chat_id": "ZjlhOWY2ZTdjY2Y0NDVmMW",
+  "npc_id": "5dcc0f0a-2476-4110-8a78-c3137d2314dc",
+  "message": "Oh wow! Your math knowledge is much better than mine. I was not able to solve this one. Can you multiply? What is 3 times 8?",
+  "model": "meta-llama/Meta-Llama-3.1-405B-Instruct"
+}'
+```
+
+### To end session
+
+```bash
+curl -X 'POST' \
+  'http://0.0.0.0:8001/end_chat_session/?chat_id=ZjlhOWY2ZTdjY2Y0NDVmMW' \
+  -H 'accept: application/json' \
+  -H 'Authorization: token8438316761499410150' \
+  -d ''
+```
+
+### To get chat history
+For admins only
+```bash
+curl -X 'GET' \
+  'http://0.0.0.0:8001/chat/token8438316761499410150/ZjlhOWY2ZTdjY2Y0NDVmMW/history' \
+  -H 'accept: application/json' \
+  -H 'Authorization: aYpVtQxRmGzLsBnCfDiKjUxWqHvNwYcFbXlPrVdTw'
+```
+where the admin key should be provided for 'Authorization'
+
 
 ## Deployment
 
