@@ -200,6 +200,8 @@ Request params:
   "model": "meta-llama/Meta-Llama-3.1-405B-Instruct"
 }
 ```
+For the first message in a dialogue chat_id should be None (null)
+
 Request:
 ```bash
 curl -X 'POST' \

@@ -27,10 +27,4 @@ npcs = Table(
     Column("char_descr", String, nullable=False),
     Column("world_descr", String, nullable=False),
     Column("has_scratchpad", Boolean, nullable=False),
-    Column("has_timestamps", Boolean, nullable=False),
-    Column("is_dreaming", Boolean, nullable=False),
-    Column("is_planning", Boolean, nullable=False),
-    # Column("has_long_term_memory", Boolean, nullable=False),
-    Column("dreaming_prompt", String, nullable=False),
-    Column("planning_prompt", String, nullable=False),
 )

@@ -1,7 +1,7 @@
 import base64, os
 import json
 import uuid
-import re, datetime
+import re
 from app.core.config import ADMIN_TOKEN, INFERENCE_ROUTING, CHAT_MEMORY_LENGTH, MODEL_NAME
 import logging
 
@@ -108,11 +108,17 @@ async def get_chat_history(chat_id: str, user_id: str):
     redis_key = f"chat_history:{user_id}:{chat_id}"
     chat_history = await redis.lrange(redis_key, 0, -1)
 
+    long_mem_key = f"long_memory:{user_id}:{chat_id}"  # Store long-term memory
+    # Load long-term memory (summary)
+    long_memory = await redis.get(long_mem_key)
+    long_memory = long_memory.decode() if long_memory else ""  # Convert from bytes to string if exists
+    logger.info(f"Long memory: {long_memory}")
+
     if not chat_history:
         raise HTTPException(status_code=404, detail="Chat history not found for this user")
 
     decoded_history = [msg.decode() for msg in chat_history]
-    return {"chat_id": chat_id, "user_id": user_id, "history": decoded_history}
+    return {"chat_id": chat_id, "user_id": user_id, "history": decoded_history, "summary": long_memory}
 
 
 async def get_npc(npc_id: str):
@@ -160,11 +166,14 @@ async def chat_npc_proxy(chat_request: ChatNPCRequest, api_key: str=Depends(veri
 
     npc = await get_npc(chat_request.npc_id)
 
-    if npc.has_scratchpad:
-        npc.char_descr += """You can use scratchpad for thinking before you answer: whatever you output between #SCRATCHPAD and #ANSWER won't be shown to anyone.
-You start your output with #SCRATCHPAD and after you've done thinking, you #ANSWER. """
+    # if npc.has_scratchpad:
+#         npc.char_descr += """You can use scratchpad for thinking before you answer: whatever you output between #SCRATCHPAD and #ANSWER won't be shown to anyone.
+# You start your output with #SCRATCHPAD and after you've done thinking, you #ANSWER. """
 
-    npc.char_descr += """The actual user's message will start with #USER:"""
+    if npc.has_scratchpad:
+        npc.char_descr += """You can use <scratchpad>...</scratchpad> for thinking before you answer: everything between these tags will be hidden from the user and only visible to the company.
+            """
+    # npc.char_descr += """The actual user's message will start with #USER:"""
 
     if long_memory != "":
         long_memory = "### PREVIOUS DIALOGUE:" + long_memory
@@ -174,7 +183,7 @@ You start your output with #SCRATCHPAD and after you've done thinking, you #ANSW
 {npc.char_descr}
 {long_memory}
             """
-    user_message_to_save = f"\n\n#USER: {chat_request.message}"
+    user_message_to_save = f"\n\n: {chat_request.message}"
     chat_request.message = user_message_to_save
 
     logger.info(f"system message: {sys_mes}")
@@ -200,18 +209,11 @@ You start your output with #SCRATCHPAD and after you've done thinking, you #ANSW
     response_text = response.json()["response"]
     response_clean = response_text
     if npc.has_scratchpad:
-        scratchpad_match = re.search(r"#SCRATCHPAD(:?)(.*?)#ANSWER(:?)", response_text, re.DOTALL)
+        # scratchpad_match = re.search(r"#SCRATCHPAD(:?)(.*?)#ANSWER(:?)", response_text, re.DOTALL)
+        scratchpad_match = re.search(r"<scratchpad>(.*?)</scratchpad>", response_text, re.DOTALL | re.IGNORECASE)
         if scratchpad_match:
-            response_clean = response_text[scratchpad_match.end():].strip()
-
-    # await redis.rpush(
-    #     f"chat_history:{chat_id}",
-    #     json.dumps({"text": chat_request.message, "role": "user"}),
-    # )
-    # await redis.rpush(
-    #     f"chat_history:{chat_id}",
-    #     json.dumps({"text": response.json()["response"], "role": "assistant"}),
-    # )
+            # response_clean = response_text[scratchpad_match.end():].strip()
+            response_clean = re.sub(r"<scratchpad>.*?</scratchpad>", "", response_text, flags=re.DOTALL | re.IGNORECASE).strip()
 
     await redis.rpush(
         f"chat_history:{user_id}:{chat_id}",  # Now includes user_id
@@ -329,7 +331,8 @@ async def end_chat_session(chat_id: str, api_key: str = Depends(verify_token)):
         # Clear short-term history since it's now summarized
         # await redis.delete(chat_key)
 
-        return {"status": "Chat session ended, summary saved", "summary": summary_text}
+        # return {"status": "Chat session ended, summary saved", "summary": summary_text}
+        return {"status": "Chat session ended, summary saved"}
 
     else:
         raise HTTPException(status_code=500, detail="Failed to generate summary")

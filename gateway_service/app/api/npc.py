@@ -1,15 +1,11 @@
-import httpx, json, os
 import logging
 import uuid
 from app.db.database import database
 from app.db.models import npcs
 from app.core.security import verify_token
-from app.schemas.npc import NPCInput, NPCResponse
+from app.schemas.npc import NPCInput
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.sql import insert, select, or_
-from sqlalchemy import update
-
-# from app.core.config import INFERENCE_ROUTING
 
 router = APIRouter()
 
@@ -31,15 +27,9 @@ async def create_npc(npc_input: NPCInput):
             char_descr=npc_input.char_descr,
             world_descr=npc_input.world_descr,
             has_scratchpad=npc_input.has_scratchpad,
-            has_timestamps=npc_input.has_timestamps,
-            is_dreaming=npc_input.is_dreaming,
-            is_planning=npc_input.is_planning,
-            dreaming_prompt=npc_input.dreaming_prompt,
-            planning_prompt=npc_input.planning_prompt
         )
     )
 
-    # has_long_term_memory=npc_input.has_long_term_memory,
     try:
         await database.execute(query)
         return {"status": "NPC successfully saved", "npc_id": npc_id}
