@@ -50,9 +50,9 @@ ssh user_name@public_ip -i llmops-ssh-key
 
 If you get disconnected from the login (for example, due to inactivity timeout), just run the same command again.
 
-## Setting up the docker
+## Setting up the docker on a Linux Machine
 
-The following recipe will work in Nebius Cloud and should generally work on Ubuntu machines; however `sudo` permissions may or may not be needed depending on your system's settings. If you use some other cloud or deploy locally, modify this instruction to fit your system.
+The following recipe will work in Nebius Cloud and should generally work on Linux machines; however `sudo` permissions may or may not be needed depending on your system's settings. If you use some other cloud or deploy locally, modify this instruction to fit your system. We'll share one of the options below
 
 1. Clone the repo to the VM. Run
    
@@ -162,6 +162,15 @@ The following recipe will work in Nebius Cloud and should generally work on Ubun
   This will stop all the running containers and clean everything.
 
 7. Rejoice!
+
+## Setting up docker with Docker Desktop
+
+If you don't have a Linux machine or don't want to use cloud, you can still experiment with the service! One of the ways of doing is as follows:
+
+* Install [**Docker Desktop**](https://www.docker.com/products/docker-desktop/)
+* Make sure that you have a command prompt app that supports linux-style commands (such as `export` or `bash`). [**Git bash**](https://git-scm.com/downloads) is one of such apps.
+
+After that, you can open **git bash** and do just the same things as described before. However, you won't have an external IP address without additional effort. So, you'll only be able to call the service from the same machine using `localhost` as IP.
 
 # Using the service
 
