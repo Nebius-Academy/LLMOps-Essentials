@@ -113,7 +113,11 @@ CREATE TABLE users (
 
 ## Usage
 
-### User's Entrypoint
+For setting up with Docker and using the launched service, check the [deployment manual](DEPLOYMENT_MANUAL.md).
+
+Below we explain how to deploy the service in more tricky scenarios.
+
+### Setting up User's Entrypoint without docker (for experienced DevOps specialists)
 
 The user's entry point to the system is the **Gateway Service**. This service handles all incoming requests from clients, performing tasks such as:
 
